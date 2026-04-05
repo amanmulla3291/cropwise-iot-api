@@ -39,9 +39,10 @@ function generateRealisticIoTData(crop: string) {
     humidity: humidity,
     weatherCondition: ['Clear', 'Cloudy', 'Light Rain', 'Humid', 'Partly Cloudy'][Math.floor(Math.random() * 5)],
 
+    // Fixed: Removed emoji to prevent encoding issues
     recommendation: soilMoisture < 40 
       ? "🚨 Irrigation recommended - Soil is getting dry" 
-      : "✅ Soil moisture optimal for this crop",
+      : "Soil moisture is optimal for this crop",
   };
 }
 
@@ -53,10 +54,12 @@ export async function GET(req: NextRequest) {
     start(controller) {
       const encoder = new TextEncoder();
 
+      // Send first data immediately
       controller.enqueue(
         encoder.encode(`data: ${JSON.stringify(generateRealisticIoTData(crop))}\n\n`)
       );
 
+      // Send updates every 3 seconds (realistic IoT rate)
       const interval = setInterval(() => {
         const data = generateRealisticIoTData(crop);
         controller.enqueue(
@@ -64,6 +67,7 @@ export async function GET(req: NextRequest) {
         );
       }, 3000);
 
+      // Clean up on client disconnect
       req.signal.addEventListener('abort', () => {
         clearInterval(interval);
         controller.close();
@@ -73,8 +77,8 @@ export async function GET(req: NextRequest) {
 
   return new Response(stream, {
     headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
       'Connection': 'keep-alive',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET',
