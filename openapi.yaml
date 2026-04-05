@@ -1,0 +1,48 @@
+openapi: 3.0.0
+info:
+  title: CropWise IoT API
+  description: Real-time mock IoT device API simulating an ESP32 soil moisture sensor for crops. Streams live data every 3 seconds using Server-Sent Events (SSE). Perfect for Flutter crop monitoring apps.
+  version: 1.0.0
+  contact:
+    name: CropWise Team
+
+servers:
+  - url: https://cropwise-iot-api-v1.vercel.app
+    description: Production Server (Vercel)
+
+paths:
+  /api/iot:
+    get:
+      summary: Get Live IoT Sensor Data (SSE Stream)
+      description: |
+        Establishes a Server-Sent Events (SSE) connection that behaves exactly like a real ESP32 IoT device.
+        Sends updated soil moisture, temperature, humidity, battery level, and device status every 3 seconds.
+      parameters:
+        - name: crop
+          in: query
+          required: false
+          schema:
+            type: string
+          description: The crop name to get sensor data for
+          example: rice
+          enum: [wheat, rice, sugarcane, cotton, maize]
+      responses:
+        '200':
+          description: Successful SSE connection with live IoT data
+          content:
+            text/event-stream:
+              schema:
+                type: string
+              example: |
+                data: {
+                  "source": "hardware_iot_device",
+                  "deviceId": "ESP32-SOIL-001",
+                  "status": "online",
+                  "batteryLevel": 87,
+                  "soilMoisture": 68,
+                  "temperature": 29,
+                  "humidity": 78,
+                  "weatherCondition": "Humid",
+                  "recommendation": "✅ Soil moisture optimal for this crop",
+                  "timestamp": "2026-04-05T10:15:30Z"
+                }
